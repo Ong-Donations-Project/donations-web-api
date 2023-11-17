@@ -32,7 +32,7 @@ model ONG {
   name                   String
   projects               Project[]
   last_login_date        DateTime   @updatedAt
-  registration_date      DateTime
+  registration_date      DateTime   @default(now())   
   mission_statement      String
   founding_date          String
   contact_phone          Int
@@ -41,34 +41,14 @@ model ONG {
   active_projects_count  Int
 }
 
-model Project {
-  id                 Int       @id @default(autoincrement())
-  title              String
-  category           ProjectCategory[]
-  description        String
-  project_image_url  String
-  target_amount      Int
-  current_amount     Int
-  ONG                ONG       @relation(fields: [ong_id], references: [id])
-  ong_id             Int
-  raised             Int
-  status             Boolean
-  start_date         DateTime
-  end_date           DateTime
-  created_at         DateTime
-  last_updated_at    DateTime
-}
 
 model Donation {
   amount             Int
   date               DateTime  @updatedAt
   id                 Int       @id @default(autoincrement())
   is_subscription    Boolean
-  ong                ONG       @relation(fields: [ong_id], references: [id])
-  ong_id             Int
-  payment            Payment   @relation(fields: [payment_method_id],references: [id])
   payment_method_id  Int
-  project            Project   @relation(fields: [project_id], references: [id])
+  project            Project[]
   project_id         Int
   receipt_sent       Boolean
   status             Boolean
@@ -76,35 +56,36 @@ model Donation {
   user_id            Int
 }
 
+model Project {
+  id                 Int                @id @default(autoincrement())
+  title              String
+  category           ProjectCategory[]
+  description        String
+  project_image_url  String
+  target_amount      Int
+  current_amount     Int
+  ONG                ONG                @relation(fields: [ONG_id], references: [id])
+  ONG_id             Int
+  donations          Donation           @relation(fields: [donation_id],references: [id])
+  donation_id Int
+  status             Boolean
+  start_date         DateTime
+  end_date           DateTime
+  created_at         DateTime           @default(now())
+  last_updated_at    DateTime
+}
+
 model PaymentMethod {
+  id                Int       @id @default(autoincrement())
+  user              User      @relation(fields: [user_id], references: [id])
+  user_id           Int
   billing_address   String    @db.VarChar(255)
   card_expiry_date  String 
   card_number       Int
   cardholder_name   String    @db.VarChar(255)
   date_added        DateTime  @updatedAt
-  id                Int       @id @default(autoincrement())
   is_default        Boolean
   method_type       String    @db.VarChar(50)
-  user              User      @relation(fields: [user_id], references: [id])
-  user_id           Int
-}
-
-model Payment {
-  id                 Int            @id @default(autoincrement())
-  donation           Donation       @relation(fields: [donation_id], references: [id])
-  payment            Payment        @relation(fields: [payment_method_id],references: [id])
-  donation_id        Int
-  payment_method_id  Int
-}
-
-model Comment {
-  id          Int      @id @default(autoincrement())
-  text        String
-  user        User     @relation(fields: [user_id], references: [id])
-  user_id     Int
-  project     Project  @relation(fields: [project_id], references: [id])
-  project_id  Int
-  created_at  DateTime @default(now())
 }
 
 model ProjectCategory {
