@@ -1,5 +1,6 @@
 // This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// learn more about it in the docs https//pris.ly/d/prisma-schema
+//https://www.prisma.io/docs/concepts/database-connectors/mysql
 
 generator client {
   provider = "prisma-client-js"
@@ -11,7 +12,84 @@ datasource db {
 }
 
 model User {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  name    String?
+  id                   Int              @id @default(autoincrement())
+  username             String
+  email                String           @unique @db.VarChar(100)
+  password             String
+  profile_picture_url  String
+  account_status       String
+  donations            Donation[]
+  payment_methods      PaymentMethod[]
+  registration_date    DateTime         @default(now())
+  last_login_date      DateTime         @updatedAt
+}
+
+model ONG {
+  id                     Int        @id @default(autoincrement())
+  category               String
+  description            String
+  location               String
+  name                   String
+  projects               Project[]
+  last_login_date        DateTime   @updatedAt
+  registration_date      DateTime   @default(now())   
+  mission_statement      String
+  founding_date          String
+  contact_phone          Int
+  contact_email          String     @db.VarChar(100)
+  website_url            String
+  active_projects_count  Int
+}
+
+
+model Donation {
+  amount             Int
+  date               DateTime  @updatedAt
+  id                 Int       @id @default(autoincrement())
+  is_subscription    Boolean
+  payment_method_id  Int
+  project            Project[]
+  project_id         Int
+  receipt_sent       Boolean
+  status             Boolean
+  user               User      @relation(fields: [user_id], references: [id])
+  user_id            Int
+}
+
+model Project {
+  id                 Int                @id @default(autoincrement())
+  title              String
+  category           ProjectCategory[]
+  description        String
+  project_image_url  String
+  target_amount      Int
+  current_amount     Int
+  ONG                ONG                @relation(fields: [ONG_id], references: [id])
+  ONG_id             Int
+  donations          Donation           @relation(fields: [donation_id],references: [id])
+  donation_id Int
+  status             Boolean
+  start_date         DateTime
+  end_date           DateTime
+  created_at         DateTime           @default(now())
+  last_updated_at    DateTime
+}
+
+model PaymentMethod {
+  id                Int       @id @default(autoincrement())
+  user              User      @relation(fields: [user_id], references: [id])
+  user_id           Int
+  billing_address   String    @db.VarChar(255)
+  card_expiry_date  String 
+  card_number       Int
+  cardholder_name   String    @db.VarChar(255)
+  date_added        DateTime  @updatedAt
+  is_default        Boolean
+  method_type       String    @db.VarChar(50)
+}
+
+model ProjectCategory {
+  id    Int     @id @default(autoincrement())
+  name  String
+  projects Project[]
 }
