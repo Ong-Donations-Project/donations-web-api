@@ -12,84 +12,107 @@ datasource db {
 }
 
 model User {
-  id                   Int              @id @default(autoincrement())
-  username             String
-  email                String           @unique @db.VarChar(100)
-  password             String
-  profile_picture_url  String
-  account_status       String
+  id                   Int                  @id @default(autoincrement())
+  username             String               @db.VarChar(25)
+  email                String               @unique @db.VarChar(100)
+  password             String               @db.VarChar(255)
+  profile_picture_url  String               @db.VarChar(255)
+  account_status       String               @db.VarChar(15)
   donations            Donation[]
-  payment_methods      PaymentMethod[]
-  registration_date    DateTime         @default(now())
-  last_login_date      DateTime         @updatedAt
+  payment_methods      Payment_Method[]
+  registration_date    DateTime            @default(now())
+  last_login_date      DateTime
+  @@index([email], name: "idx_user_email")
 }
 
 model ONG {
   id                     Int        @id @default(autoincrement())
-  category               String
-  description            String
-  location               String
-  name                   String
+  email                String       @unique @db.VarChar(100)
+  password             String       @db.VarChar(255)
+  logo_url               String     @db.VarChar(255)
+  category               String     @db.VarChar(50)
+  description            String     @db.VarChar(255)
+  location               String     @db.VarChar(255)
+  city                   String     @db.VarChar(255)
+  state_or_province      String     @db.VarChar(255)
+  postal_code            String     @db.VarChar(20)
+  name                   String     @db.VarChar(50)
   projects               Project[]
-  last_login_date        DateTime   @updatedAt
+  last_login_date        DateTime
   registration_date      DateTime   @default(now())   
-  mission_statement      String
-  founding_date          String
-  contact_phone          Int
-  contact_email          String     @db.VarChar(100)
-  website_url            String
+  mission_statement      String     @db.VarChar(255)
+  founding_date          String     @db.VarChar(10)
+  contact_phone          String     @db.VarChar(15)
+  contact_email          String     @db.VarChar(255)
+  website_url            String     @db.VarChar(255)
+  social_media_profiles Social_Media_Profile[]
   active_projects_count  Int
+  @@index([email], name: "idx_ong_email")
 }
 
+model Social_Media_Profile {
+  id                     Int     @id @default(autoincrement())
+  ong_id                 Int
+  ong                    ONG     @relation(fields: [ong_id],references: [id])
+  platform               String  @db.VarChar(20)
+  url                    String  @db.VarChar(255)
+  @@index([ong_id], name:"idx_social_media_profile_ong_id")
+}
 
 model Donation {
+  id                 Int       @id @default(autoincrement())
   amount             Int
   date               DateTime  @updatedAt
-  id                 Int       @id @default(autoincrement())
-  is_subscription    Boolean
-  payment_method_id  Int
-  project            Project[]
-  project_id         Int
-  receipt_sent       Boolean
-  status             Boolean
   user               User      @relation(fields: [user_id], references: [id])
   user_id            Int
+  project            Project[]
+  project_id         Int
+  is_subscription    Boolean
+  payment_method_id  Int
+  receipt_sent       Boolean
+  status             Boolean
+  @@index([user_id],name:"idx_donation_user_id")
+  @@index([project_id],name:"idx_donation_project_id")
+  @@index([date],name:"idx_donation_date")
 }
 
 model Project {
   id                 Int                @id @default(autoincrement())
-  title              String
-  category           ProjectCategory[]
-  description        String
-  project_image_url  String
+  title              String             @db.VarChar(255)
+  category           Project_Category[]
+  description        String             @db.VarChar(255)
+  project_image_url  String             @db.VarChar(255)
   target_amount      Int
   current_amount     Int
-  ONG                ONG                @relation(fields: [ONG_id], references: [id])
-  ONG_id             Int
-  donations          Donation           @relation(fields: [donation_id],references: [id])
-  donation_id Int
+  ong                ONG                @relation(fields: [ong_id], references: [id])
+  ong_id             Int
+  donations          Donation[]
+  donation_id        Int
   status             Boolean
   start_date         DateTime
   end_date           DateTime
   created_at         DateTime           @default(now())
   last_updated_at    DateTime
+  location           String             @db.VarChar(255)
+  @@index([title], name: "idx_project_title")
 }
 
-model PaymentMethod {
+model Project_Category {
+  id    Int           @id @default(autoincrement())
+  name  String        @db.VarChar(50)
+  projects Project[]
+}
+
+model Payment_Method {
   id                Int       @id @default(autoincrement())
   user              User      @relation(fields: [user_id], references: [id])
   user_id           Int
   billing_address   String    @db.VarChar(255)
-  card_expiry_date  String 
-  card_number       Int
-  cardholder_name   String    @db.VarChar(255)
+  card_expiry_date  String    @db.VarChar(10)
+  card_number       BigInt
+  cardholder_name   String    @db.VarChar(100)
   date_added        DateTime  @updatedAt
   is_default        Boolean
   method_type       String    @db.VarChar(50)
-}
-
-model ProjectCategory {
-  id    Int     @id @default(autoincrement())
-  name  String
-  projects Project[]
+  @@index([user_id], name:"idx_payment_method_user_id")
 }
